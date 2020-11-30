@@ -1,0 +1,26 @@
+{
+  "name": "mtgcollectionviewerapi",
+  "version": "0.1.0",
+  "description": "Mtg collection viewer API",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \\\"Error: no tests specified\\\" && exit 1",
+    "serve": "node app.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/drave/mtgcollectionviewerapi.git"
+  },
+  "author": "drave",
+  "license": "GPL-3.0",
+  "bugs": {
+    "url": "https://github.com/drave/mtgcollectionviewerapi/issues"
+  },
+  "homepage": "https://github.com/drave/mtgcollectionviewerapi#readme",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.17.1",
+    "match-all": "^1.2.6",
+    "papaparse": "^5.3.0"
+  }
+}
