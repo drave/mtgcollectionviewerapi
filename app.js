@@ -5,7 +5,7 @@ const fs = require('fs');
 const Papa = require("papaparse");
 const matchAll = require("match-all");
 
-fs.readFile('cards.csv', 'utf8', function(err, fileData) {
+fs.readFile('cards2.csv', 'utf8', function(err, fileData) {
     if (err) throw err;
 
     let rows = fileData.split("\n");
@@ -26,6 +26,11 @@ fs.readFile('cards.csv', 'utf8', function(err, fileData) {
     headers = headers.replace('Total Price', 'total_price');
     headers = headers.replace('Price Source', 'price_source');
     headers = headers.replace('Notes', 'notes');
+    headers = headers.replace("Trend", "trend");
+    headers = headers.replace("Sell", "sell");
+    headers = headers.replace("Low", "low");
+    headers = headers.replace("Foil trend", "foil_trend");
+    headers = headers.replace("Foil low", "foil_low");
     rows = rows.map(row => row.replace(/""/g, '&quot;')).filter(l => l !== '');
     const csvData = [headers, ...rows].join("\n");
     const json = Papa.parse(csvData, {
@@ -272,11 +277,58 @@ fs.readFile('cards.csv', 'utf8', function(err, fileData) {
         return costs;
     }
 
+    const calculatePrice = (row) => {
+        const newRow = row;
+        let totalTrend = 0;
+        let totalLow = 0;
+        if (row.reg_qty > 0) {
+            if (row.trend > 0) {
+                newRow.price_trend = parseFloat(row.trend);
+                totalTrend += row.reg_qty * parseFloat(row.trend);
+            }
+            if (row.sell > 0) {
+                newRow.price_average = parseFloat(row.sell);
+            }
+            if (row.low > 0) {
+                newRow.price_low = parseFloat(row.low);
+                totalLow += row.reg_qty * parseFloat(row.low);
+            }
+        }
+        if (row.foil_qty > 0) {
+            if (row.foil_trend > 0) {
+              newRow.price_foil_trend = parseFloat(row.foil_trend);
+              totalTrend += row.foil_qty * parseFloat(row.foil_trend);
+            }
+            if (row.foil_low > 0) {
+              newRow.price_foil_low = parseFloat(row.foil_low);
+              totalLow += row.foil_qty * parseFloat(row.foil_low);
+            }
+        }
+
+        if (totalTrend > 0) {
+            newRow.total_trend = parseFloat(totalTrend.toFixed(2));
+        }
+        if (totalLow > 0) {
+          newRow.total_low = parseFloat(totalLow.toFixed(2));
+        }
+
+        return newRow;
+    }
+
     let data = json.data;
+
+    let totalTrend = 0;
+    let totalLow = 0;
 
     data = data.map(c => {
         c['mana'] = replaceMana(c.mana_cost)
-
+        c = calculatePrice(c);
+        if (c.total_trend) {
+            totalTrend += c.total_trend;
+        }
+        if (c.total_low) {
+          totalLow += c.total_low;
+        }
         return c;
     })
 
@@ -296,8 +348,20 @@ fs.readFile('cards.csv', 'utf8', function(err, fileData) {
                 o = o.substring(1)
             }
 
-            if (o === 'reg_qty' || o === 'foil_qty') {
-                return dir === 1 ? parseFloat(a[o]) - parseFloat(b[o]) : parseFloat(b[o]) - parseFloat(a[o]);
+            if (
+              o === "reg_qty" ||
+              o === "foil_qty" ||
+              o === "price_trend" ||
+              o === "price_average" ||
+              o === "price_low" ||
+              o === "price_foil_trend" ||
+              o === "price_foil_low" ||
+              o === "total_trend" ||
+              o === "total_low"
+            ) {
+              return dir === 1
+                ? parseFloat(a[o]) - parseFloat(b[o])
+                : parseFloat(b[o]) - parseFloat(a[o]);
             }
 
             if (o === 'mana_cost') {
@@ -349,6 +413,10 @@ fs.readFile('cards.csv', 'utf8', function(err, fileData) {
 
         return {
             results: sortCards(filteredData, sortBy).slice(((page - 1) * 100), (page * 100)),
+            totals: {
+                totalTrend: totalTrend.toFixed(2),
+                totalLow: totalLow.toFixed(2)
+            },
             total_results: total
         }
     }
