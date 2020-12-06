@@ -281,27 +281,32 @@ fs.readFile('cards2.csv', 'utf8', function(err, fileData) {
         const newRow = row;
         let totalTrend = 0;
         let totalLow = 0;
-        if (row.reg_qty > 0) {
-            if (row.trend > 0) {
-                newRow.price_trend = parseFloat(row.trend);
+        if (row.trend > 0) {
+            newRow.price_trend = parseFloat(row.trend);
+            if (row.reg_qty > 0) {
                 totalTrend += row.reg_qty * parseFloat(row.trend);
             }
-            if (row.sell > 0) {
-                newRow.price_average = parseFloat(row.sell);
-            }
-            if (row.low > 0) {
-                newRow.price_low = parseFloat(row.low);
+        }
+        if (row.sell > 0) {
+            newRow.price_average = parseFloat(row.sell);
+        }
+        if (row.low > 0) {
+            newRow.price_low = parseFloat(row.low);
+            if (row.reg_qty > 0) {
                 totalLow += row.reg_qty * parseFloat(row.low);
             }
         }
-        if (row.foil_qty > 0) {
-            if (row.foil_trend > 0) {
-              newRow.price_foil_trend = parseFloat(row.foil_trend);
-              totalTrend += row.foil_qty * parseFloat(row.foil_trend);
+
+        if (row.foil_trend > 0) {
+            newRow.price_foil_trend = parseFloat(row.foil_trend);
+            if (row.foil_qty > 0) {
+                totalTrend += row.foil_qty * parseFloat(row.foil_trend);
             }
-            if (row.foil_low > 0) {
-              newRow.price_foil_low = parseFloat(row.foil_low);
-              totalLow += row.foil_qty * parseFloat(row.foil_low);
+        }
+        if (row.foil_low > 0) {
+            newRow.price_foil_low = parseFloat(row.foil_low);
+            if (row.foil_qty > 0) {
+                totalLow += row.foil_qty * parseFloat(row.foil_low);
             }
         }
 
